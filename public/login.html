@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login Page</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    /* Same styles as before */
+    .swal-font {
+      font-family: "Courier New", Courier, monospace !important;
+    }
+    
+    * {
+      margin: 0; padding: 0; box-sizing: border-box;
+      font-family: "Courier New", Courier, monospace;
+    }
+    body {
+      display: flex; justify-content: center; align-items: center;
+      min-height: 100vh;
+      background: url("/pawel-czerwinski-GiQpjzJLNtk-unsplash.jpg") no-repeat center/cover;
+    }
+    .wrapper {
+      width: 420px;
+      background-color: transparent;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      color: white;
+      padding: 30px 40px;
+      border-radius: 25px;
+      margin: 40px 0;
+    }
+    .wrapper h1 {
+      font-size: 36px;
+      text-align: center;
+    }
+    .input-box {
+      width: 100%;
+      height: 50px;
+      margin: 30px 0;
+    }
+    .input-box input {
+      width: 100%;
+      height: 100%;
+      background-color: transparent;
+      border: 2px solid rgb(206,195,195);
+      border-radius: 40px;
+      font-size: 16px;
+      color: white;
+      padding: 20px 45px 20px 20px;
+      outline: none;
+    }
+    .input-box input::placeholder {
+      color: white;
+    }
+    .remember-forgot {
+      display: flex;
+      justify-content: center;
+      gap: 50px;
+      font-size: 14.5px;
+      margin: -15px 0 15px;
+      cursor: pointer;
+    }
+    .btn {
+      width: 100%;
+      height: 45px;
+      background: white;
+      border-radius: 42px;
+      cursor: pointer;
+      font-size: 16px;
+      color: gray;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    .btn:hover {
+      background-color: #aed4be;
+      color: white;
+      transform: scale(1.03);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .register-link {
+      font-size: 14.5px;
+      text-align: center;
+      margin-top: 20px;
+    }
+    a {
+      text-decoration: none;
+      color: white;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <h1>Login</h1>
+    <form id="login-form">
+      <div class="input-box">
+        <input type="text" placeholder="Username" id="user" required />
+      </div>
+      <div class="input-box">
+        <input type="password" placeholder="Password" id="password" required />
+      </div>
+      <div class="remember-forgot">
+        <label><input type="checkbox" /> Remember me</label>
+        <a id="forget">Forgot password?</a>
+      </div>
+      <button type="submit" class="btn">Login</button>
+      <div class="register-link">
+        <p>
+          Don't have an account?
+          <a href="#" id="register-link">Register</a>
+        </p>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // Pre-made usernames and passwords
+    const passwords = [
+      "A7d!k9xP", "tF3#qZ92lm", "xY9@w4Ez1!Lc", "R!p83k@Zxm#D6",
+      "M2&vx4#u5ZqPlT", "jW!p8u9@Qe#LmNz", "ZkT!9q7Wx#C2@vPf"
+    ];
+
+    const usernames = [
+      "NeonPulse23!", "VibeCrushX_7", "PixelNova_99#", "GlitchAura88$",
+      "ShadowFlexx@3", "Sn1perWolfX!", "GhostFrameZ_5", "RageStrike77*",
+      "NukeKnight$2", "BunnyBopz_9", "SnugglePeach!", "HoneyDaisy#4",
+      "FluffyTails09%", "MochiSprout@7", "CodeByteX_3", "QuantumNerd$1",
+      "PingSniffer!", "CryptoWaffle#9", "TerminalBee_6"
+    ];
+
+    // Helper function to get a random element from an array
+    function getRandom(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    // ------------------- NEW: Fetch already registered usernames -------------------
+    async function getUniqueUsername() {
+      try {
+        const res = await fetch("http://localhost:3000/users"); // Server route returns array of usernames
+        const usedUsernames = await res.json();
+
+        // Filter out already used usernames
+        const availableUsernames = usernames.filter(u => !usedUsernames.includes(u));
+        if (availableUsernames.length === 0) throw new Error("No usernames left");
+
+        return getRandom(availableUsernames);
+      } catch (err) {
+        console.error(err);
+        return null;
+      }
+    }
+    // ------------------------------------------------------------------------------
+
+    // Register link click handler
+    document.getElementById("register-link").addEventListener("click", async function(e) {
+      e.preventDefault();
+
+      const username = await getUniqueUsername(); // Get a unique username
+      if (!username) return Swal.fire({ title: "No usernames left", icon: "error" });
+
+      const password = getRandom(passwords);
+
+      const result = await Swal.fire({
+        title: `<strong>Your new account:</strong>`,
+        html: `Username: <code>${username}</code><br>Password: <code>${password}</code>`,
+        icon: "info",
+        showCancelButton: true,
+        confirmButtonText: "Register this!",
+        cancelButtonText: "Cancel",
+        customClass: { popup: 'swal-font' }
+      });
+
+      if (result.isConfirmed) {
+        try {
+          const res = await fetch("http://localhost:3000/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+
+          if (!res.ok) throw new Error("Registration failed");
+
+          Swal.fire({
+            title: "Registration successful!",
+            text: "You can now login with your new credentials.",
+            icon: "success",
+            confirmButtonText: "Okay"
+          });
+        } catch (err) {
+          Swal.fire({
+            title: "Registration Failed",
+            text: "Username might already exist or server error.",
+            icon: "error",
+            confirmButtonText: "Try Again"
+          });
+        }
+      }
+    });
+
+    // Login form submit
+    document.getElementById("login-form").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const username = document.getElementById("user").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      try {
+        const res = await fetch("http://localhost:3000/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+
+        if (!res.ok) throw new Error("Login failed");
+
+        await res.json();
+
+        const result = await Swal.fire({
+          title: `Welcome back, ${username}!`,
+          icon: "success",
+          confirmButtonText: "Continue",
+          customClass: { popup: 'swal-font' }
+        });
+
+        if (result.isConfirmed) {
+          localStorage.setItem("loggedInUser", username);
+          window.location.href = "index.html";
+        }
+
+      } catch (err) {
+        Swal.fire({
+          title: "Login Failed",
+          text: "Incorrect username or password",
+          icon: "error",
+          confirmButtonText: "Try Again",
+          customClass: { popup: 'swal-font' }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

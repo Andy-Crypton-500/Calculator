@@ -1,0 +1,457 @@
+<head>
+  <title>Graphing Calculator</title>
+  <link
+    rel="icon"
+    type="image/x-icon"
+    href="/Math_programming_calc_figure_2_half_column_mobile.jpg"
+  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Libertinus+Mono&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Libertinus+Mono&family=Ruslan+Display&display=swap"
+    rel="stylesheet"
+  />
+
+  <!--SWEETALERT CDN-->
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    #graph {
+      width: auto;
+      height: 1000px;
+      margin-top: 100px;
+    }
+    #return {
+      background-color: #69b8ad;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 50px;
+      margin-top: 100px;
+      transition-duration: 0.4s;
+      font-family: Ruslan Display;
+    }
+    body {
+      background: #e8f5e9; /* soft teal to mint */
+      font-family: Libertinus Mono;
+      color: #2e3c43;
+    }
+
+    #return:hover {
+      background-color: #ffffff;
+      color: #4db6ac;
+      border: 1px solid #4db6ac;
+      animation: wiggle 0.4s ease-in-out 2;
+    }
+    #text {
+      display: flex;
+    }
+    #functionInput {
+      width: 200px;
+    }
+    #yValue,
+    #xValue {
+      width: 162px;
+    }
+    #text {
+      display: flex;
+      justify-content: center;
+    }
+    #inputs input {
+      margin-right: 5px; /* space to the right of each input */
+      margin-bottom: 10px; /* optional: adds vertical spacing if they wrap */
+    }
+    #inputs button {
+      margin-right: 5px; /* space to the right of each input */
+      margin-bottom: 10px; /* optional: adds vertical spacing if they wrap */
+    }
+    #inputs {
+      text-align: center;
+    }
+    #xAxisLabelInput {
+      width: 178px;
+    }
+    #yAxisLabelInput {
+      width: 178px;
+    }
+    input:focus,
+    button:focus {
+      outline: none;
+      border-color: #80deea;
+      box-shadow: 0 0 5px rgba(128, 222, 234, 0.5);
+    }
+    #chat {
+      text-align: center;
+      padding-bottom: 30px;
+    }
+    #return {
+      width: 1500px;
+      height: 50px;
+      margin-top: 50px;
+      margin-bottom: 30px;
+      font-size: 30px;
+      cursor: pointer;
+    }
+    #text h1 {
+      display: inline-block;
+    }
+    #returnb {
+      display: flex;
+      justify-content: center;
+    }
+    #text h1:hover {
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        text-shadow: 0 0 5px rgba(245, 253, 11, 0.7);
+      }
+      50% {
+        transform: scale(1.6);
+        text-shadow: 0 0 15px rgba(245, 253, 11, 0.7);
+      }
+      100% {
+        transform: scale(1);
+        text-shadow: 0 0 15px rgba(245, 253, 11, 0.7); /* back to normal */
+      }
+    }
+    @keyframes wiggle {
+      0%,
+      100% {
+        transform: rotate(0deg);
+      }
+      25% {
+        transform: rotate(2deg);
+      }
+      75% {
+        transform: rotate(-2deg);
+      }
+    }
+    #window {
+      width: 175px;
+    }
+    #functionInput2 {
+      width: 118px;
+    }
+  </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.1/math.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+  <div id="returnb">
+    <button id="return" onclick="back()">Return -></button>
+  </div>
+  <div id="text"><h1>Graphing Calculator</h1></div>
+  <h2 id="chat"></h2>
+  <div id="inputs">
+    <input
+      id="functionInput"
+      placeholder="Enter function, y = or f(x) =  form"
+    />
+    <input id="functionInput2" placeholder="Enter 2nd function" />
+    <!-- X-axis label input -->
+    <input id="xAxisLabelInput" placeholder="Enter x-axis label (default: x)" />
+
+    <!-- Y-axis label input -->
+    <input id="yAxisLabelInput" placeholder="Enter y-axis label (default: y)" />
+    <input id="xValue" placeholder="Search for y-value given x" />
+    <input id="yValue" placeholder="Search for x-value given y" />
+    <input id="window" placeholder="Window: (input max x value)" />
+    <button
+      onclick="plotFunction()"
+      aria-label="Plot"
+      title="Plot"
+      style="cursor: pointer"
+    >
+      Plot
+    </button>
+    <button
+      onclick="findMax()"
+      aria-label="Find Max"
+      title="Maximum"
+      style="cursor: pointer"
+    >
+      Find Max
+    </button>
+    <button
+      onclick="findMin()"
+      aria-label="Find Min"
+      title="Minimum"
+      style="cursor: pointer"
+    >
+      Find Min
+    </button>
+    <button
+      onclick="intersect()"
+      aria-label="Intersect"
+      title="Intersect"
+      style="cursor: pointer"
+    >
+      Intersection
+    </button>
+    <button
+      onclick="derivative()"
+      aria-label="Derivative"
+      title="Derivative"
+      style="cursor: pointer"
+    >
+      Derivative Graph
+    </button>
+    <div id="plot" style="width: 100%; height: 500px" aria-label="Graph"></div>
+    <small
+      style="
+        display: block;
+        text-align: center;
+        margin-top: 20px;
+        margin-bottom: 40px;
+        color: #999;
+      "
+    >
+      Questions or Concerns:
+      <a
+        href="https://docs.google.com/forms/d/e/1FAIpQLScgpRjyFoth7OxsxTyg_SJr4XUAupp9w2WMqKsxo4h4GGqYUQ/viewform?usp=dialog"
+        >Inquiry Form</a
+      >
+    </small>
+  </div>
+  <script>
+    let max = null;
+    let min = null;
+    let xMax = null;
+    let xMin = null;
+    const xValues = [];
+    const yValues = [];
+    const y2Values = [];
+    let windowValue = document.getElementById("window").value;
+
+    function plotFunction() {
+      let expr = document.getElementById("functionInput").value.trim();
+      let expr2 = document.getElementById("functionInput2").value.trim();
+
+      let windowValue =
+        parseFloat(document.getElementById("window").value) || 100;
+      xValues.length = 0;
+      yValues.length = 0;
+      y2Values.length = 0;
+
+      let capital = expr;
+      if (expr.startsWith("y=")) {
+        expr = expr.slice(2, expr.length);
+        capital = expr.slice(0, 2) + expr.slice(2, expr.length).toUpperCase();
+      }
+      if (expr.startsWith("f(x)=")) {
+        expr = expr.slice(5, expr.length);
+        capital = expr.slice(0, 5) + expr.slice(5, expr.length).toUpperCase();
+      }
+      if (expr2.startsWith("y=")) {
+        expr2 = expr2.slice(2, expr2.length);
+      }
+      if (expr2.startsWith("f(x)=")) {
+        expr2 = expr2.slice(5, expr2.length);
+      }
+
+      const xInputRaw = document.getElementById("xValue").value.trim();
+      const yInputRaw = document.getElementById("yValue").value.trim();
+
+      // Then parse floats
+      const xInput = parseFloat(xInputRaw);
+      const yInput = parseFloat(yInputRaw);
+      if (windowValue <= 500) {
+        for (let x = -windowValue; x <= windowValue; x += 0.01) {
+          try {
+            const scope = { x };
+            const y = math.evaluate(expr, scope);
+            const y2 = math.evaluate(expr2, scope);
+            xValues.push(x);
+            yValues.push(y);
+            y2Values.push(y2);
+          } catch (err) {
+            console.error("Invalid function:", err);
+            return;
+          }
+        }
+      } else if (windowValue > 600) {
+        for (let x = -windowValue; x <= windowValue; x += 1) {
+          try {
+            const scope = { x };
+            const y = math.evaluate(expr, scope);
+            const y2 = math.evaluate(expr2, scope);
+            xValues.push(x);
+            yValues.push(y);
+            y2Values.push(y2);
+          } catch (err) {
+            console.error("Invalid function:", err);
+            return;
+          }
+        }
+      }
+
+      //FIND MAX
+
+      max = Math.max(...yValues); //three dots make it so that it seperates each value in the array!
+      const maxIndex = yValues.indexOf(max);
+      xMax = xValues[maxIndex];
+
+      //FIND MIN
+
+      min = Math.min(...yValues);
+      const minIndex = yValues.indexOf(min);
+      xMin = xValues[minIndex];
+      // *** CHANGED: Validate xInput before evaluating answer1 ***
+      let answer1;
+      if (xInputRaw === "" || isNaN(xInput)) {
+        answer1 = "";
+      } else {
+        try {
+          answer1 = math.evaluate(expr, { x: xInput });
+          if (isNaN(answer1)) {
+            answer1 = `Function undefined at x = ${xInput}`;
+          }
+        } catch {
+          answer1 = `Error evaluating function at x = ${xInput}`;
+        }
+      }
+      // *** CHANGED: Just keep answer1 for now, no evaluation for answer2 ***
+      // You can add proper handling for answer2 separately if you want to solve for x given y.
+
+      document.getElementById(
+        "chat"
+      ).innerHTML = `The y-value given x is ${answer1}`;
+
+      let xTitle =
+        document.getElementById("xAxisLabelInput").value.trim() || "x";
+      let yTitle =
+        document.getElementById("yAxisLabelInput").value.trim() || "y";
+      const trace = {
+        x: xValues,
+        y: yValues,
+        type: "scatter",
+        mode: "lines",
+        name: expr,
+      };
+      const trace2 = {
+        x: xValues,
+        y: y2Values,
+        type: "scatter",
+        mode: "lines",
+        name: expr2,
+      };
+
+      const layout = {
+        title: "Plot of " + capital,
+        xaxis: { title: xTitle },
+        yaxis: { title: yTitle },
+        paper_bgcolor: "#e8f5e9",
+        plot_bgcolor: "#e8f5e9",
+        legend: {
+          x: 0, // left side
+          y: -0.3, // below the plot area
+          xanchor: "left",
+          yanchor: "top",
+          orientation: "h", // horizontal legend
+        }, // Outside background (matches body)
+      };
+      expr = document.getElementById("functionInput").value.trim();
+      expr2 = document.getElementById("functionInput2").value.trim();
+
+      Plotly.purge("plot");
+      Plotly.newPlot("plot", [trace, trace2], layout, {
+        responsive: true,
+        displaylogo: false,
+      });
+    }
+    function findMax() {
+      if (max === null) {
+        Swal.fire({
+          icon: "warning",
+          title: "WARNING:",
+          text: "Please plot a function first.",
+        });
+      } else {
+        Swal.fire({
+          icon: "info",
+          title: "Maximum Value",
+          text:
+            "Maximum y-value: " +
+            Math.round(max) +
+            ". Maximum's x-value: " +
+            Math.round(xMax),
+        });
+      }
+    }
+
+    function findMin() {
+      if (min === null) {
+        Swal.fire({
+          icon: "warning",
+          title: "WARNING:",
+          text: "Please plot a function first.",
+        });
+      } else {
+        Swal.fire({
+          icon: "info",
+          title: "Minimum Value",
+          text:
+            "Minimum y-value: " +
+            Math.round(min) +
+            ". Minimum's x-value: " +
+            Math.round(xMin),
+        });
+      }
+    }
+    function derivative() {
+      window.location.href = "derivative.html";
+    }
+    function back() {
+      window.location.href = "index.html";
+    }
+    function intersect() {
+      let expr = document.getElementById("functionInput").value.trim();
+      let expr2 = document.getElementById("functionInput2").value.trim();
+      const windowValue =
+        parseFloat(document.getElementById("window").value) || 100;
+      const intersections = [];
+
+      if ((expr2 === "" && expr === "") || expr === "" || expr2 === "") {
+        Swal.fire({
+          icon: "warning",
+          title: "Incomplete Input",
+          text: "Please enter both functions to find intersections.",
+        });
+      } else {
+        for (let i = 0; i < xValues.length - 1; i++) {
+          let diff1 = yValues[i] - y2Values[i];
+          let diff2 = yValues[i + 1] - y2Values[i + 1];
+
+          if (diff1 * diff2 <= 0) {
+            const xIntercept = Math.round(xValues[i]);
+            const yIntercept = Math.round(yValues[i]);
+            intersections.push("(" + xIntercept + ", " + yIntercept + ")");
+          }
+        }
+        if (intersections.length === 0) {
+          alert("No intersections found on this graph.");
+        } else {
+          Swal.fire({
+            title: "<strong>Intersections</strong>",
+            icon: "info",
+            html: "There are intersections at: " + intersections.join(", and "),
+            showCloseButton: true,
+            focusConfirm: false,
+            confirmButtonText: `
+            <i class="fa fa-thumbs-up"></i> Great 😊
+          `,
+            confirmButtonAriaLabel: "Thumbs up, great!",
+          });
+        }
+      }
+    }
+  </script>
+</body>
