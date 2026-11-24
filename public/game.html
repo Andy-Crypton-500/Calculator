@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -25,7 +25,7 @@
         margin-top: 80px;
         text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
         transition: all 0.3s ease-in-out;
-      }      
+      }
       #box {
         display: flex;
         justify-content: center;
@@ -50,7 +50,9 @@
         border-radius: 25px;
         outline: none;
         width: 220px;
-        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        transition:
+          border-color 0.3s ease,
+          box-shadow 0.3s ease;
         box-shadow: 0 4px 8px rgba(106, 209, 227, 0.4);
       }
 
@@ -73,7 +75,9 @@
         font-size: 18px;
         box-shadow: 0 6px 10px rgba(106, 209, 227, 0.5);
         cursor: pointer;
-        transition: background 0.3s ease, box-shadow 0.3s ease;
+        transition:
+          background 0.3s ease,
+          box-shadow 0.3s ease;
       }
       .button:hover {
         background: #53b7cc; /* slightly darker shade for hover */
@@ -190,7 +194,7 @@
       <button class="button start">Start</button>
       <button class="button check">Check Answer</button>
       <button class="button next">Next</button>
-      <h3 id = "stopwatch">Timer:</h3>
+      <h3 id="stopwatch">Timer:</h3>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/mathjs@11/lib/browser/math.js"></script>
     <script>
@@ -239,9 +243,8 @@
         const [num1, num2] = getRandomNumber();
         const symbols = ["*", "-", "+"];
         let operator = symbols[Math.floor(Math.random() * symbols.length)];
-        document.getElementById(
-          "word"
-        ).innerHTML = `${num1} ${operator} ${num2}`;
+        document.getElementById("word").innerHTML =
+          `${num1} ${operator} ${num2}`;
         correctAnswer = eval(`${num1}${operator}${num2}`);
       }
 
@@ -314,44 +317,113 @@
         correctAnswer = x;
       }
 
+      function generateCalculus() {
+        const max = Math.max(3, parseInt(rangeInput.value, 10) || 10);
+
+        const type = Math.floor(Math.random() * 4);
+
+        let a = Math.floor(Math.random() * max) + 1;
+        let b = Math.floor(Math.random() * max) + 1;
+        let n = Math.floor(Math.random() * 5) + 2;
+
+        if (type === 0) {
+          // Derivatives: ax^n + bx
+          const derivativeA = a * n;
+
+          document.getElementById("word").innerHTML =
+            `Find f'(x) if f(x) = ${a}x^${n} + ${b}x`;
+
+          correctAnswer = derivativeA;
+          window.calculusAnswer = `${derivativeA}x^${n - 1} + ${b}`;
+        } else if (type === 1) {
+          // Basic power rule derivative
+          document.getElementById("word").innerHTML =
+            `Find f'(x) if f(x) = ${a}x^${n}`;
+
+          correctAnswer = a * n;
+          window.calculusAnswer = `${a * n}x^${n - 1}`;
+        } else if (type === 2) {
+          // Indefinite integral
+          document.getElementById("word").innerHTML = `Integrate: ${a}x^${n}`;
+
+          correctAnswer = a / (n + 1);
+          window.calculusAnswer = `${toFractionString(a / (n + 1))}x^${n + 1} + C`;
+        } else {
+          // Limits
+          const x = Math.floor(Math.random() * max) + 1;
+
+          document.getElementById("word").innerHTML =
+            `Find lim x→${x} (${a}x + ${b})`;
+
+          correctAnswer = a * x + b;
+          window.calculusAnswer = correctAnswer;
+        }
+      }
+
       document.querySelector(".start").addEventListener("click", function () {
         this.style.display = "none";
+
         if (currentMode === "Algebra") {
           generateAlgebra();
+        } else if (currentMode === "Calculus") {
+          generateCalculus();
         } else {
           generateArithmetic();
         }
       });
 
       document.querySelector(".next").addEventListener("click", function () {
+        document.getElementById("answer").value = "";
+
         if (currentMode === "Algebra") {
           generateAlgebra();
+        } else if (currentMode === "Calculus") {
+          generateCalculus();
         } else {
           generateArithmetic();
         }
       });
 
       document.querySelector(".check").addEventListener("click", function () {
-        const input = Number(document.getElementById("answer").value);
+        const answer = document.getElementById("answer").value.trim();
+
         if (correctAnswer === null) return;
 
-        if (input === correctAnswer) {
+        let isCorrect = false;
+
+        if (currentMode === "Calculus") {
+          try {
+            const expected = window.calculusAnswer;
+
+            isCorrect =
+              math.simplify(answer).toString() ===
+              math.simplify(expected).toString();
+          } catch (error) {
+            isCorrect = false;
+          }
+        } else {
+          isCorrect = Number(answer) === correctAnswer;
+        }
+
+        clearInterval(timerId);
+
+        if (isCorrect) {
           document.getElementById("word").innerHTML = "CONGRATS!!!";
+
           Swal.fire({
             title: "Good Job!",
-            text:
-              `Correct! The answer was ${correctAnswer}` +
-              ", and you entered " +
-              input +
-              ", too!",
+            text: "Correct! You got it!",
             icon: "success",
           });
         } else {
           document.getElementById("word").innerHTML =
             "You'll Get It Next Time!";
+
           Swal.fire({
             title: "Uh Oh!",
-            text: `Wrong! The answer was ${correctAnswer}, while you entered ${input}`,
+            text: `Wrong! The answer was ${
+              currentMode === "Calculus" ? window.calculusAnswer : correctAnswer
+            }`,
             icon: "error",
           });
         }
@@ -375,32 +447,31 @@
         }
       });
       let time = 0;
-let timerId;
-const stopwatch = document.getElementById("stopwatch");
+      let timerId;
+      const stopwatch = document.getElementById("stopwatch");
 
-document.querySelector(".start").addEventListener("click", function () {
-  time = 0;
-  clearInterval(timerId); // ← stop previous timer
-  timerId = setInterval(() => {
-    time+=0.1;
-    stopwatch.textContent = "Time: " + time.toFixed(1);
-  }, 100);
-});
+      document.querySelector(".start").addEventListener("click", function () {
+        time = 0;
+        clearInterval(timerId); // ← stop previous timer
+        timerId = setInterval(() => {
+          time += 0.1;
+          stopwatch.textContent = "Time: " + time.toFixed(1);
+        }, 100);
+      });
 
-document.querySelector(".next").addEventListener("click", function () {
-  time = 0;
-  clearInterval(timerId); // ← stop previous timer
-  timerId = setInterval(() => {
-    time+=0.1;
-    stopwatch.textContent ="Time: " + time.toFixed(1);
-  }, 100);
-});
+      document.querySelector(".next").addEventListener("click", function () {
+        time = 0;
+        clearInterval(timerId); // ← stop previous timer
+        timerId = setInterval(() => {
+          time += 0.1;
+          stopwatch.textContent = "Time: " + time.toFixed(1);
+        }, 100);
+      });
 
-document.querySelector(".check").addEventListener("click", function () {
-  clearInterval(timerId); // ← this will now work correctly
-  stopwatch.textContent ="Final Time: " + time.toFixed(1);
-});
-
+      document.querySelector(".check").addEventListener("click", function () {
+        clearInterval(timerId); // ← this will now work correctly
+        stopwatch.textContent = "Final Time: " + time.toFixed(1);
+      });
     </script>
   </body>
 </html>

@@ -10,12 +10,11 @@ const app = express();
 const port = 3000;
 const USERS_FILE = "./users.json";
 
-// 📦 Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static("public")); // Serve HTML/CSS/JS/images from public
 
-// 🔧 Helpers
+//Helpers
 function getUsers() {
   if (!fs.existsSync(USERS_FILE)) return [];
   return JSON.parse(fs.readFileSync(USERS_FILE, "utf-8"));
@@ -25,7 +24,7 @@ function saveUsers(users) {
   fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
 }
 
-// 🔐 Register Middleware
+// Register Middleware
 app.post("/register", async (req, res) => {
   const { username, password } = req.body;
   const users = getUsers();
@@ -43,7 +42,7 @@ app.post("/register", async (req, res) => {
   res.json({ message: "Registered successfully!" });
 });
 
-// 🔐 Login Middleware
+// Login Middleware
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
   const users = getUsers();
@@ -88,7 +87,7 @@ app.get("/derivative", (req, res) => {
   res.sendFile(__dirname + "/public/deravitive.html");
 });
 
-// 🟢 Start the server
+// Start the server
 app.listen(port, () => {
-  console.log(`✅ Listening on port ${port}`);
+  console.log(`Listening on port ${port}`);
 });
